@@ -10,7 +10,7 @@ Alertas de vaga chegam por e-mail de várias plataformas, como LinkedIn e Greenh
 
 1. Um gatilho diário dispara a função `rotinaDiaria` em algum momento entre 18h e 19h.
 2. O script busca no Gmail os alertas não lidos com o marcador Vagas (`label:vagas is:unread`).
-3. O texto de cada e-mail é limpo: os links de vaga do LinkedIn são encurtados para `https://www.linkedin.com/jobs/view/<id>`; nos demais links, são removidos só os parâmetros de rastreamento conhecidos (como `utm_*`, `gh_src`, `trk*` e `ref*`), e os parâmetros que podem identificar a vaga, como `?jobId=123`, são mantidos. Linhas de traços e espaços repetidos são compactados, e o texto é cortado em 12.000 caracteres.
+3. O texto de cada e-mail é limpo: os links de vaga do LinkedIn são encurtados para `https://www.linkedin.com/jobs/view/<id>`; nos demais links, são removidos só os parâmetros de rastreamento conhecidos (como `utm_*`, `gh_src`, `trk`, `trkEmail`, `refId` e `otpToken`), e os parâmetros que podem identificar a vaga, como `?jobId=123`, são mantidos. Linhas de traços e espaços repetidos são compactados, e o texto é cortado em 12.000 caracteres.
 4. O texto limpo vai ao Gemini em uma chamada por e-mail, com uma instrução de sistema e um esquema JSON de saída estruturada. O Gemini devolve a lista de vagas do e-mail, cada uma com empresa, título, nível, local, modelo de trabalho, link, nota, motivos e pontos de atenção.
 5. As vagas são gravadas na aba `vagas` da planilha. Uma vaga cujo link já está na planilha é ignorada, para não duplicar.
 6. O e-mail é marcado como lido. Se a chamada ao Gemini ou a gravação falhar, o e-mail continua não lido e entra na próxima tentativa.
@@ -121,6 +121,7 @@ Link e capturas em breve
 - A qualidade do resultado depende dos alertas configurados nas plataformas: o script só avalia o que chega ao Gmail.
 - O gatilho diário roda em algum momento entre 18h e 19h, não num horário exato.
 - Um alerta que falhe sempre segura o resumo até 22h45, porque o script continua tentando enquanto houver alerta não lido.
+- A lista de parâmetros de rastreamento cobre os alertas do LinkedIn e do Greenhouse. Um parâmetro de rastreamento de outra plataforma pode passar até ser acrescentado à lista.
 - Contas gratuitas do Google têm cotas diárias no Apps Script, como as de chamadas externas, e-mails enviados e tempo de execução de gatilhos.
 
 ## Uso de IA

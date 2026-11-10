@@ -4,7 +4,7 @@ const ESPERA_ENTRE_CHAMADAS_MS = 4000;
 const LIMITE_TEXTO = 12000;
 const TEMPO_MAXIMO_MS = 3.5 * 60 * 1000;
 const COLUNAS = ['data', 'fonte', 'empresa', 'titulo', 'nivel', 'local', 'modelo', 'link', 'nota', 'motivos', 'atencao', 'decisao', 'resumido'];
-const PARAMETROS_RASTREAMENTO = /^(utm_|gh_src$|trk|tracking|ref|lipi$|mid|otp|eid$)/i;
+const PARAMETROS_RASTREAMENTO = /^(utm_\w+|gh_src|trk|trkEmail|trackingId|refId|lipi|midToken|midSig|otpToken|eid)$/i;
 
 const NOTA_MINIMA = 7;
 const NIVEIS_ACEITOS = ['estagio', 'trainee', 'junior', 'nao_informado'];
@@ -150,7 +150,7 @@ function registrarResultado(processados, falhas, vagasNovas) {
 function limparTexto(corpo) {
   return corpo
     .replace(/https:\/\/www\.linkedin\.com\/comm\/jobs\/view\/(\d+)\S*/g, 'https://www.linkedin.com/jobs/view/$1')
-    .replace(/https?:\/\/\S+/g, removerRastreamento)
+    .replace(/https?:\/\/[^\s)>"]*[^\s)>".,;:!?]/g, removerRastreamento)
     .replace(/-{5,}/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
