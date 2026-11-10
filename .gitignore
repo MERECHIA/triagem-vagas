@@ -1,0 +1,18 @@
+# clasp: o .clasp.json guarda o ID do projeto e o .clasprc.json guarda credenciais
+.clasp.json
+.clasprc.json
+
+# Segredos e configurações locais
+.env
+.env.*
+*.local
+
+# Dependências e logs
+node_modules/
+npm-debug.log*
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
