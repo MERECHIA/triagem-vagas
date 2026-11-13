@@ -90,7 +90,9 @@ Cada vaga traz dois textos curtos. Em `motivos`, "até duas frases curtas sobre 
 
    `data`, `fonte`, `empresa`, `titulo`, `nivel`, `local`, `modelo`, `link`, `nota`, `motivos`, `atencao`, `decisao`, `resumido`
 
-   O script grava as colunas nessa ordem e lê o resumo pelos nomes do cabeçalho. A coluna `decisao` é para você preencher à mão; `resumido` é preenchida pelo script.
+   O script grava as colunas nessa ordem e lê o resumo pelos nomes do cabeçalho. A coluna `resumido` é preenchida pelo script.
+
+   A coluna `decisao` é preenchida à mão depois de abrir cada vaga em destaque, com um destes valores: `candidatar` (a vaga serve e você quer se candidatar), `sem_interesse` (a vaga serve para o perfil, mas você não quer), `ignorar` (a vaga não serve, e a informação para descartar estava no alerta), `requisito_fora_do_alerta` (a vaga não serve por um requisito que só aparece na página da vaga) ou `fechada` (a vaga já foi encerrada). Esses valores permitem separar os erros do Gemini das limitações do alerta.
 3. **Gmail.** Crie o marcador `Vagas` e um filtro que aplique esse marcador aos alertas de vaga (por exemplo, os remetentes `jobalerts-noreply@linkedin.com`, `jobs-noreply@linkedin.com` e os alertas do Greenhouse). O filtro não deve marcar os e-mails como lidos, porque o script só processa os não lidos.
 4. **Propriedades do script.** Em Configurações do projeto > Propriedades do script, crie:
    - `GEMINI_API_KEY`: sua chave da API do Gemini.
@@ -108,21 +110,53 @@ Cada vaga traz dois textos curtos. Em `motivos`, "até duas frases curtas sobre 
 
 ## Resultados
 
-Em medição, atualizado em 12/11/2026
+Medição de 10 a 12 de novembro de 2026, nos alertas de vaga que chegaram ao meu Gmail.
+
+### Tempo
+
+| Dia | Vagas analisadas | Nível incompatível | Em destaque | Triagem manual | Leitura do resumo |
+|---|---|---|---|---|---|
+| 10/11 | 33 | 10 | 4 | 33 min (medido) | 6 min |
+| 11/11 | 29 | 8 | 2 | 29 min (estimado) | 4 min |
+| 12/11 | 18 | 4 | 1 | 18 min (estimado) | 2 min |
+
+Em três dias, a automação analisou 80 vagas. A triagem manual, medida num dia e estimada nos outros pelo mesmo ritmo (cerca de 1 minuto por vaga), levaria em média 27 minutos por dia. Com o resumo, a leitura, a abertura dos links em destaque e a decisão passaram a levar em média 4 minutos. A economia é de cerca de 23 minutos por dia, ou de 1 h 55 min a 2 h 40 min por semana, conforme os alertas cheguem em 5 ou 7 dias.
+
+A automação não acelera a análise de cada vaga: ela elimina a etapa de descarte. Na triagem manual, quase todo o tempo ia para ler e descartar vagas que não serviam.
+
+### Qualidade das vagas em destaque
+
+Para cada vaga em destaque, registrei na planilha o que decidi depois de abri-la. A análise inclui as 10 vagas em destaque desde o primeiro teste: as 7 dos três dias medidos e 3 do teste de 09/11. Uma vaga já estava fechada, então ficam 9 avaliadas:
+
+| Resultado | Vagas | O que significa |
+|---|---|---|
+| Me candidatei | 3 | A vaga servia e eu quis me candidatar |
+| Sem interesse | 2 | A vaga servia para o perfil, mas não me vi nela |
+| Erro do Gemini | 2 | A informação para descartar estava no alerta: uma vaga numa cidade da região metropolitana, que o perfil não aceita, e uma de TI fora de dados e IA |
+| Requisito fora do alerta | 2 | Uma exigia graduação completa e outra, estudar fora do Brasil. Esses requisitos só aparecem na página da vaga, não no e-mail |
+
+Das 9, 5 eram compatíveis com o perfil (56%), e 3 viraram candidaturas (33%). Os dois tipos de falha pedem soluções diferentes: os erros do Gemini se corrigem na instrução (a regra sobre região metropolitana já foi acrescentada), e os requisitos fora do alerta só se resolvem buscando a página da vaga.
 
 ## Painel
 
-Link e capturas em breve
+[Painel no Looker Studio](https://datastudio.google.com/reporting/d3cd77bc-c6ca-4dbe-ba1f-81935841e5cc) com as vagas analisadas por dia, a proporção de nível aceito e incompatível, a distribuição das notas e as vagas em destaque. O painel lê a planilha da automação e se atualiza a cada execução.
 
 ## Limitações conhecidas
 
-- O Gemini às vezes erra regras de local e já presumiu um modelo de trabalho que o alerta não informava. Isso foi corrigido na instrução, que agora manda conferir o local contra as regras e não presumir o modelo.
+- A instrução foi ajustada para conferir o local da vaga contra as regras do perfil e não presumir o modelo de trabalho. Isso corrigiu os erros de local, mas o modelo ainda às vezes é presumido: vagas em cidades aceitas para trabalho híbrido, com modelo não informado, recebem notas inconsistentes (algumas levam 7 e outras, parecidas, levam 5), e em alguns casos o Gemini afirmou que a vaga era presencial mesmo sem essa informação no alerta.
 - A maioria dos alertas do LinkedIn não informa o modelo de trabalho, então muitas vagas chegam como `nao_informado` e pedem confirmação.
 - A qualidade do resultado depende dos alertas configurados nas plataformas: o script só avalia o que chega ao Gmail.
 - O gatilho diário roda em algum momento entre 18h e 19h, não num horário exato.
 - Um alerta que falhe sempre segura o resumo até 22h45, porque o script continua tentando enquanto houver alerta não lido.
 - A lista de parâmetros de rastreamento cobre os alertas do LinkedIn e do Greenhouse. Um parâmetro de rastreamento de outra plataforma pode passar até ser acrescentado à lista.
 - Contas gratuitas do Google têm cotas diárias no Apps Script, como as de chamadas externas, e-mails enviados e tempo de execução de gatilhos.
+- A medição é curta: três dias, com a triagem manual medida em um só e estimada nos outros. A medição manual foi feita antes da leitura do resumo, no mesmo dia, o que pode ter deixado a leitura mais rápida.
+- O alerta de e-mail não traz os requisitos da vaga. Exigências como graduação completa só aparecem na página da vaga, então o Gemini não tem como considerá-las.
+
+## Próximos passos
+
+- Definir na instrução a nota de vagas em cidade aceita para híbrido com modelo não informado, para acabar com a inconsistência entre 5 e 7.
+- Para as vagas em destaque, deixar o modelo decidir abrir a página da vaga e conferir os requisitos antes de recomendar. Isso resolveria os casos de requisito fora do alerta.
 
 ## Uso de IA
 
